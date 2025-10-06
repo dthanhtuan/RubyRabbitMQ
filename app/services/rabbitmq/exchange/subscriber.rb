@@ -111,6 +111,42 @@ module Rabbitmq
         end
       end
 
+      # Subscribe to a headers exchange. `headers_hash` should match subscriber binding criteria
+      # Example headers_hash: { 'x-match' => 'all', 'type' => 'report' }
+      def self.subscribe_to_headers(exchange_name, headers_hash, subscriber_name)
+        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection.start
+
+        channel = connection.create_channel
+        # Create the same headers exchange
+        exchange = channel.headers(exchange_name, durable: true)
+
+        # Create a unique queue for this subscriber
+        queue = channel.queue("#{exchange_name}.#{subscriber_name}", exclusive: false, auto_delete: true)
+
+        # Bind the queue to the headers exchange with the provided headers arguments
+        queue.bind(exchange, arguments: headers_hash)
+
+        Rails.logger.info "Headers subscriber '#{subscriber_name}' connected to headers exchange '#{exchange_name}' with headers #{headers_hash.inspect}"
+
+        begin
+          queue.subscribe(block: true) do |delivery_info, properties, body|
+            received_headers = properties.headers || {}
+            Rails.logger.info "Headers subscriber '#{subscriber_name}' received message with headers #{received_headers.inspect}: #{body}"
+
+            if block_given?
+              yield(delivery_info, properties, body)
+            else
+              process_message(subscriber_name, body)
+            end
+          end
+        rescue Interrupt => _
+          Rails.logger.info "Headers subscriber '#{subscriber_name}' shutting down..."
+        ensure
+          connection.close
+        end
+      end
+
       private
 
       def self.process_message(subscriber_name, message, routing_key = nil)

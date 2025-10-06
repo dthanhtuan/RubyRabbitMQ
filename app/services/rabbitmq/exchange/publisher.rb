@@ -46,7 +46,21 @@ module Rabbitmq
 
         connection.close
       end
+
+      # Publish to a headers exchange. `headers_hash` should include header key/values
+      # and may include 'x-match' => 'all' or 'any' when binding subscribers.
+      def self.publish_headers(exchange_name, headers_hash, message)
+        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection.start
+
+        channel = connection.create_channel
+        exchange = channel.headers(exchange_name, durable: true)
+        exchange.publish(message, headers: headers_hash, persistent: true)
+
+        Rails.logger.info "Published message to headers exchange '#{exchange_name}' with headers #{headers_hash}: #{message}"
+
+        connection.close
+      end
     end
   end
 end
-

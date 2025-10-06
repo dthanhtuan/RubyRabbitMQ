@@ -31,7 +31,7 @@ Each RabbitMQ messaging pattern has its own dedicated controller and namespace:
 
 - **SingleQueueController** - `/single_queue/*` - Simplest case, 1 producer 1 consumer
 - **WorkQueueController** - `/work_queue/*` - Task distribution
-- **PubSubController** - `/pub_sub/*` - Fanout broadcasting  
+- **PubSubController** - `/pub_sub/*` - Fanout, Direct, Topic and Headers exchanges (various pub/sub patterns)
 - **RoutingController** - `/routing/*` - Selective routing by exact match
 - **TopicController** - `/topic/*` - Selective routing by pattern
 
@@ -59,6 +59,15 @@ This separation makes it easy to understand each pattern independently.
 - Messages sent to fanout exchange (`demo_exchange`)
 - Multiple subscribers receive copies of the same message
 - Good for: Broadcasting, system notifications
+
+## Publish/Subscribe Patterns (`PubSubController`)
+- **Rabbitmq::Exchange::Publisher** - Publishes messages to fanout, direct, topic, and headers exchanges
+- **Rabbitmq::Exchange::Subscriber** - Subscribes to exchanges to receive messages (fanout, direct, topic, headers)
+- Fanout: Messages sent to fanout exchange (`demo_exchange`) — multiple subscribers receive copies of the same message
+- Direct: Messages sent to direct exchange (`demo_direct_exchange`) — subscribers receive messages by exact routing key
+- Topic: Messages sent to topic exchange (`demo_topic_exchange`) — subscribers filter messages by routing key patterns
+- Headers: Messages sent to headers exchange (`demo_headers_exchange`) — subscribers bind by message headers (x-match: all/any)
+- Good for: Broadcasting, selective delivery by key/pattern/headers, system notifications
 
 ### Routing Pattern (`RoutingController`)
 - **Rabbitmq::Exchange::Publisher** - Publishes messages with routing keys to a direct exchange
@@ -113,6 +122,19 @@ curl -X POST http://localhost:3000/pub_sub/broadcast \
 curl -X POST http://localhost:3000/pub_sub/start_subscriber \
   -H "Content-Type: application/json" \
   -d '{"subscriber_name": "email_service"}'
+```
+
+## Publish/Subscribe Patterns
+```bash
+# Publish with routing key
+curl -X POST http://localhost:3000/pub_sub/publish \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Critical system error", "routing_key": "error.critical"}'
+
+# Start subscriber with specific routing key
+curl -X POST http://localhost:3000/pub_sub/start_subscriber \
+  -H "Content-Type: application/json" \
+  -d '{"subscriber_name": "error_handler", "routing_key": "error.critical"}'
 ```
 
 ### Routing Pattern (Selective Routing by Exact Match)
@@ -407,7 +429,7 @@ Notes
 |------------|---------|-------------|-------------|
 | **SingleQueueController** | Single Queue | Simple pub/sub | One-off tasks, demos |
 | **WorkQueueController** | Work Queue | Task distribution | Background jobs, load balancing |
-| **PubSubController** | Fanout | Broadcasting | System notifications, cache invalidation |
+| **PubSubController** | Fanout, Direct, Topic, Headers | Broadcasting, selective delivery | System notifications, event-driven architecture |
 | **RoutingController** | Routing | Selective delivery | Exact match filtering |
 | **TopicController** | Topic | Selective routing | Event-driven architecture, microservices |
 

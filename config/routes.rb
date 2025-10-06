@@ -22,6 +22,13 @@ Rails.application.routes.draw do
   namespace :pub_sub do
     post 'broadcast', to: 'pub_sub#broadcast'
     post 'start_subscriber', to: 'pub_sub#start_subscriber'
+    # Additional exchange patterns supported by PubSubController for demo purposes
+    post 'publish_direct', to: 'pub_sub#publish_direct'
+    post 'start_direct_subscriber', to: 'pub_sub#start_direct_subscriber'
+    post 'publish_topic', to: 'pub_sub#publish_topic'
+    post 'start_topic_subscriber', to: 'pub_sub#start_topic_subscriber'
+    post 'publish_headers', to: 'pub_sub#publish_headers'
+    post 'start_headers_subscriber', to: 'pub_sub#start_headers_subscriber'
   end
 
   # Topic Pattern - Selective message routing
