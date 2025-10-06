@@ -53,21 +53,37 @@ This separation makes it easy to understand each pattern independently.
 - Each task processed by exactly one worker
 - Good for: Task distribution, job processing
 
-### Publish/Subscribe Fanout Pattern (`PubSubController`)
-- **Rabbitmq::Exchange::Publisher** - Publishes messages to fanout exchanges
-- **Rabbitmq::Exchange::Subscriber** - Subscribes to exchanges to receive messages
-- Messages sent to fanout exchange (`demo_exchange`)
-- Multiple subscribers receive copies of the same message
-- Good for: Broadcasting, system notifications
+### Publish/Subscribe Patterns (`PubSubController`)
+- `Rabbitmq::Exchange::Publisher` — publishes to fanout, direct, topic, and headers exchanges  
+- `Rabbitmq::Exchange::Subscriber` — subscribes to exchanges (fanout, direct, topic, headers)
 
-## Publish/Subscribe Patterns (`PubSubController`)
-- **Rabbitmq::Exchange::Publisher** - Publishes messages to fanout, direct, topic, and headers exchanges
-- **Rabbitmq::Exchange::Subscriber** - Subscribes to exchanges to receive messages (fanout, direct, topic, headers)
-- Fanout: Messages sent to fanout exchange (`demo_exchange`) — multiple subscribers receive copies of the same message
-- Direct: Messages sent to direct exchange (`demo_direct_exchange`) — subscribers receive messages by exact routing key
-- Topic: Messages sent to topic exchange (`demo_topic_exchange`) — subscribers filter messages by routing key patterns
-- Headers: Messages sent to headers exchange (`demo_headers_exchange`) — subscribers bind by message headers (x-match: all/any)
-- Good for: Broadcasting, selective delivery by key/pattern/headers, system notifications
+Fanout (`demo_exchange`)
+- Summary: broadcast message copies to all bound queues.
+- Good for:
+  - System-wide announcements (maintenance, feature flags)
+  - Broadcasting events to multiple independent consumers (logging, metrics, notification services)
+  - Stateless subscribers that must all receive every message
+
+Direct (`demo_direct_exchange`)
+- Summary: deliver messages to queues bound with an exact routing key.
+- Good for:
+  - Exact-category routing (severity, component, service name)
+  - Targeted delivery to a specific consumer or consumer group
+  - Command/notification patterns where the recipient is known
+
+Topic (`demo_topic_exchange`)
+- Summary: pattern-based routing using wildcards (e.g. `user.*`, `#.error`).
+- Good for:
+  - Event-driven architectures where services subscribe to categories or namespaces
+  - Multi-tenant or domain-based routing (topic per domain or feature)
+  - Flexible subscriptions that match many related routing keys
+
+Headers (`demo_headers_exchange`)
+- Summary: route based on message headers and `x-match` (`all` / `any`).
+- Good for:
+  - Complex routing decisions based on multiple metadata fields (locale, tenant, version)
+  - When routing depends on attributes instead of a routing key
+  - Selective delivery requiring combinations of header values
 
 ### Routing Pattern (`RoutingController`)
 - **Rabbitmq::Exchange::Publisher** - Publishes messages with routing keys to a direct exchange
