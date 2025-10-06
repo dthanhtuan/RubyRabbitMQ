@@ -12,5 +12,36 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 
-  post "messages", to: "messages#create"
+  # Work Queue Pattern - Task distribution among workers
+  namespace :work_queue do
+    post 'enqueue', to: 'work_queue#enqueue'
+    post 'start_worker', to: 'work_queue#start_worker'
+  end
+
+  # Pub/Sub Fanout Pattern - Broadcast to all subscribers
+  namespace :pub_sub do
+    post 'broadcast', to: 'pub_sub#broadcast'
+    post 'start_subscriber', to: 'pub_sub#start_subscriber'
+  end
+
+  # Topic Pattern - Selective message routing
+  namespace :topic do
+    post 'publish', to: 'topic#publish'
+    post 'start_subscriber', to: 'topic#start_subscriber'
+  end
+
+  # Single Queue Pattern - Simple 1P -> 1C example
+  namespace :single_queue do
+    post 'enqueue', to: 'single_queue#enqueue'
+    post 'start_consumer', to: 'single_queue#start_consumer'
+  end
+
+  # Routing (Direct) Pattern - Exact routing keys
+  namespace :routing do
+    post 'publish', to: 'routing#publish'
+    post 'start_subscriber', to: 'routing#start_subscriber'
+  end
+
+  # Keep original messages endpoint for backward compatibility
+  post "messages", to: "single_queue#enqueue"
 end
