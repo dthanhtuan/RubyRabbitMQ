@@ -12,11 +12,20 @@ module Rabbitmq
         connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
         connection.start
         channel = connection.create_channel
+        # Fair dispatch: allow one unacknowledged message at a time per worker
+        channel.prefetch(1)
         queue = channel.queue(queue_name, durable: true)
         begin
-          queue.subscribe(block: true) do |_delivery_info, _properties, body|
-            Rails.logger.info "Processing work from queue '#{queue_name}': #{body}"
-            process_work(body)
+          queue.subscribe(manual_ack: true, block: true) do |delivery_info, _properties, body|
+            begin
+              Rails.logger.info "Processing work from queue '#{queue_name}': #{body}"
+              process_work(body)
+              channel.ack(delivery_info.delivery_tag)
+            rescue => _e
+              Rails.logger.error "Error processing message from '#{queue_name}': #{_e.message}"
+              # Requeue message for retry
+              channel.nack(delivery_info.delivery_tag, false, true)
+            end
           end
         ensure
           connection.close
@@ -63,4 +72,3 @@ module Rabbitmq
     end
   end
 end
-

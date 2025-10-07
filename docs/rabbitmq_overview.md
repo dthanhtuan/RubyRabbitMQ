@@ -1,8 +1,27 @@
 # RabbitMQ Overview: Enqueue and Receive Examples
 
-This file provides concise Ruby (Bunny) examples showing how messages are enqueued and received for each RabbitMQ pattern used in this project.
+This file provides concise Ruby (Bunny) examples showing how messages are enqueued and received for each RabbitMQ
+pattern used in this project.
+
+## Terminology clarification
+- "Publish/Subscribe" (pub/sub) is the general family where publishers send messages to exchanges and multiple subscribers receive them via queues bound to those exchanges.
+- Exchange types shown in this doc (and the project):
+  - Fanout — broadcast to all bound queues (covered by PubSubController examples)
+  - Direct — exact routing key match (covered by pub_sub/direct examples — PubSub::DirectController)
+  - Topic — wildcard pattern routing (covered by pub_sub/topic examples — PubSub::TopicController)
+  - Headers — matching based on message headers
+
+- Note: Direct (routing) and Topic are flavors of the publish/subscribe family; this project groups those flavors under the pub_sub namespace with pattern-specific controllers for clearer separation of concerns.
+
+## Log into web container
+
+```bash
+docker-compose exec web bash
+# bundle exec rails console
+```
 
 ## Single queue (direct to a named queue)
+
 ```ruby
 # Enqueue
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -10,19 +29,32 @@ connection.start
 channel = connection.create_channel
 queue = channel.queue('demo_queue', durable: true)
 queue.publish('hello single', persistent: true)
-connection.close
+# connection.close # Close when done sending
 
 # Receive
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
 connection.start
 channel = connection.create_channel
+# Without fair dispatch (no prefetch, no manual ack): Receive messages as they arrive, even if busy
+# Not recommended for long tasks since one busy consumer can block others
+# Fair dispatch (with prefetch + manual ack) is shown in "Work queue" example
 queue = channel.queue('demo_queue', durable: true)
 queue.subscribe(block: true) do |_delivery_info, _properties, body|
   puts "Single received: #{body}"
 end
 ```
 
+### When 1 receiver is running
+
+![enqueue.png](imgs/single_queues/enqueue.png)
+![receive.png](imgs/single_queues/receive.png)
+
+### When 2 receivers are running (messages distributed round-robin)
+
+![two_receivers.png](imgs/single_queues/two_receivers.png)
+
 ## Work queue (task distribution; consumer uses prefetch + manual ack)
+
 ```ruby
 # Enqueue (same as single queue)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -30,26 +62,37 @@ connection.start
 channel = connection.create_channel
 queue = channel.queue('work_queue', durable: true)
 queue.publish('do work', persistent: true)
-connection.close
+# connection.close
 
 # Worker (consumer)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
 connection.start
 channel = connection.create_channel
+# fair dispatch: request new message only when ready
 channel.prefetch(1) # fair dispatch - one message at a time
 queue = channel.queue('work_queue', durable: true)
 queue.subscribe(manual_ack: true, block: true) do |delivery_info, _properties, body|
   begin
-    puts "Working on: #{body}"
-    # perform work...
     channel.ack(delivery_info.delivery_tag)
+    puts "Done: #{body}"
   rescue
     channel.nack(delivery_info.delivery_tag, false, true)
   end
 end
 ```
 
-## Fanout exchange (broadcast)
+### When receivers are idle, messages are distributed round-robin
+
+[![idle_workers.png](imgs/work_queues/idle_workers.png)]
+
+### When one worker is busy, the other gets the next message
+
+![1_busy_worker.png](imgs/single_queues/1_busy_worker.png)
+
+## Pub/Sub pattern
+
+### Fanout exchange (broadcast)
+
 ```ruby
 # Enqueue (publish to fanout exchange)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -57,21 +100,24 @@ connection.start
 channel = connection.create_channel
 exchange = channel.fanout('demo_exchange', durable: true)
 exchange.publish('broadcast', persistent: true)
-connection.close
+# connection.close
 
 # Subscriber (each subscriber gets its own queue)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
 connection.start
 channel = connection.create_channel
-exchange = channel.fanout('demo_exchange', durable: true)
 queue = channel.queue('demo_exchange.my_subscriber', exclusive: false, auto_delete: true)
+exchange = channel.fanout('demo_exchange', durable: true)
 queue.bind(exchange)
 queue.subscribe(block: true) do |_delivery_info, _properties, body|
   puts "Fanout received: #{body}"
 end
 ```
 
-## Direct exchange (Routing pattern — exact routing_key)
+#### When 4 subscribers are running, both get the message
+
+### Direct exchange (Routing pattern — exact routing_key)
+
 ```ruby
 # Enqueue
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -94,6 +140,7 @@ end
 ```
 
 ## Topic exchange (Topic pattern — '*' and '#' wildcards)
+
 ```ruby
 # Enqueue
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -116,6 +163,7 @@ end
 ```
 
 ## Headers exchange (header-based routing)
+
 ```ruby
 # Enqueue (set headers on published message)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -137,7 +185,8 @@ queue.subscribe(block: true) do |_delivery_info, properties, body|
 end
 ```
 
-## Notes:
+### Notes:
+
 - Queues/exchanges are declared durable and messages are published persistent where appropriate in this project.
 - For work queues, set prefetch and use manual acknowledgements on the consumer side for fair dispatch.
 - Topic patterns: '*' matches exactly one word, '#' matches zero-or-more words.

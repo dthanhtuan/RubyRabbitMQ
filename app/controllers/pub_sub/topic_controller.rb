@@ -1,7 +1,7 @@
-class TopicController < ApplicationController
+class PubSub::TopicController < ApplicationController
   DEMO_TOPIC_EXCHANGE = 'demo_topic_exchange'
 
-  # Publish message with routing key for selective delivery
+  # Publish message to topic exchange with routing key
   def publish
     message = params[:message] || "Topic message from Rails at #{Time.now}"
     routing_key = params[:routing_key] || 'general.info'
@@ -22,7 +22,6 @@ class TopicController < ApplicationController
     subscriber_name = params[:subscriber_name] || "topic_subscriber_#{SecureRandom.hex(4)}"
     routing_pattern = params[:routing_pattern] || '#' # '#' means all messages
 
-    # This would typically be run in a separate process or background job
     Thread.new do
       Rabbitmq::Exchange::Subscriber.subscribe_to_topic(DEMO_TOPIC_EXCHANGE, routing_pattern, subscriber_name)
     end

@@ -20,21 +20,21 @@ Rails.application.routes.draw do
 
   # Pub/Sub Fanout Pattern - Broadcast to all subscribers
   namespace :pub_sub do
-    post 'broadcast', to: 'pub_sub#broadcast'
-    post 'start_subscriber', to: 'pub_sub#start_subscriber'
-    # Additional exchange patterns supported by PubSubController for demo purposes
-    post 'publish_direct', to: 'pub_sub#publish_direct'
-    post 'start_direct_subscriber', to: 'pub_sub#start_direct_subscriber'
-    post 'publish_topic', to: 'pub_sub#publish_topic'
-    post 'start_topic_subscriber', to: 'pub_sub#start_topic_subscriber'
-    post 'publish_headers', to: 'pub_sub#publish_headers'
-    post 'start_headers_subscriber', to: 'pub_sub#start_headers_subscriber'
-  end
+    # Fanout pattern
+    post 'fanout/broadcast', to: 'fanout#broadcast'
+    post 'fanout/start_subscriber', to: 'fanout#start_subscriber'
 
-  # Topic Pattern - Selective message routing
-  namespace :topic do
-    post 'publish', to: 'topic#publish'
-    post 'start_subscriber', to: 'topic#start_subscriber'
+    # Direct (Routing) pattern
+    post 'direct/publish', to: 'direct#publish'
+    post 'direct/start_subscriber', to: 'direct#start_subscriber'
+
+    # Topic pattern
+    post 'topic/publish', to: 'topic#publish'
+    post 'topic/start_subscriber', to: 'topic#start_subscriber'
+
+    # Headers pattern
+    post 'headers/publish', to: 'headers#publish'
+    post 'headers/start_subscriber', to: 'headers#start_subscriber'
   end
 
   # Single Queue Pattern - Simple 1P -> 1C example
@@ -43,11 +43,7 @@ Rails.application.routes.draw do
     post 'start_consumer', to: 'single_queue#start_consumer'
   end
 
-  # Routing (Direct) Pattern - Exact routing keys
-  namespace :routing do
-    post 'publish', to: 'routing#publish'
-    post 'start_subscriber', to: 'routing#start_subscriber'
-  end
+  # Note: Routing and Topic examples are now under the pub_sub namespace as focused controllers
 
   # Keep original messages endpoint for backward compatibility
   post "messages", to: "single_queue#enqueue"

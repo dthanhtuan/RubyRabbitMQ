@@ -1,9 +1,9 @@
-class RoutingController < ApplicationController
+class PubSub::DirectController < ApplicationController
   DEMO_DIRECT_EXCHANGE = 'demo_direct_exchange'
 
-  # Publish message to direct exchange with a routing key
+  # Publish to direct exchange with routing key
   def publish
-    message = params[:message] || "Routing message from Rails at #{Time.now}"
+    message = params[:message] || "Direct message from Rails at #{Time.now}"
     routing_key = params[:routing_key] || 'info'
 
     Rabbitmq::Exchange::Publisher.publish_direct(DEMO_DIRECT_EXCHANGE, routing_key, message)
@@ -13,17 +13,17 @@ class RoutingController < ApplicationController
       message: message,
       exchange: DEMO_DIRECT_EXCHANGE,
       routing_key: routing_key,
-      pattern: 'Direct/Routing - messages routed to queues by exact routing key'
+      pattern: 'Direct - messages routed by exact routing key'
     }
   end
 
-  # Start a direct exchange subscriber for a specific routing key
+  # Start a direct subscriber for a specific routing key
   def start_subscriber
     subscriber_name = params[:subscriber_name] || "direct_subscriber_#{SecureRandom.hex(4)}"
     routing_key = params[:routing_key] || 'info'
 
     Thread.new do
-      Rabbitmq::Queue::WorkQueueJob.new.perform_direct_subscriber(DEMO_DIRECT_EXCHANGE, routing_key, subscriber_name)
+      Rabbitmq::Exchange::Subscriber.subscribe_to_direct(DEMO_DIRECT_EXCHANGE, routing_key, subscriber_name)
     end
 
     render json: {
@@ -35,3 +35,4 @@ class RoutingController < ApplicationController
     }
   end
 end
+
