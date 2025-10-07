@@ -95,7 +95,12 @@ Fanout (`demo_exchange`)
 ## Learning Exercise Examples
 
 ### Exercise 1: Single Queue
+**Automated Tests**: Unit tests for controller and services
 ```bash
+# Run automated tests
+bundle exec rspec spec/controllers/single_queue_controller_spec.rb
+
+# Manual verification
 # Terminal 1: Start consumer
 curl -X POST http://localhost:3000/single_queue/start_consumer -d "consumer_name=consumer_1"
 
@@ -106,9 +111,13 @@ curl -X POST http://localhost:3000/single_queue/enqueue -d "message=Hello, Singl
 ```
 
 ### Exercise 2: Work Queue
-Demonstrate task distribution among competing workers:
-
+**Automated Tests**: Integration spec verifies message distribution among workers
 ```bash
+# Run automated tests
+bundle exec rspec spec/integration/work_queue_integration_spec.rb
+bundle exec rspec spec/controllers/work_queues_controller_spec.rb
+
+# Manual verification - demonstrate task distribution among competing workers:
 # Terminal 1: Start first worker
 curl -X POST http://localhost:3000/work_queues/start_worker \
   -d "worker_name=worker_1"
@@ -126,9 +135,13 @@ curl -X POST http://localhost:3000/work_queues/enqueue -d "message=Task 3"
 ```
 
 ### Exercise 3: Fanout Broadcasting
-Show how all subscribers receive the same message:
-
+**Automated Tests**: Integration spec verifies all subscribers receive messages
 ```bash
+# Run automated tests
+bundle exec rspec spec/integration/pub_sub_integration_spec.rb
+bundle exec rspec spec/controllers/pub_sub/fanout_controller_spec.rb
+
+# Manual verification - show how all subscribers receive the same message:
 # Terminal 1: Start email service subscriber
 curl -X POST http://localhost:3000/pub_sub/fanout/start_subscriber \
   -d "subscriber_name=email_service"
@@ -145,9 +158,13 @@ curl -X POST http://localhost:3000/pub_sub/fanout/broadcast \
 ```
 
 ### Exercise 4: Routing
-Demonstrate selective message routing by exact match:
-
+**Automated Tests**: Integration spec verifies exact routing key matching
 ```bash
+# Run automated tests
+bundle exec rspec spec/integration/direct_integration_spec.rb
+bundle exec rspec spec/controllers/pub_sub/direct_controller_spec.rb
+
+# Manual verification - demonstrate selective message routing by exact match:
 # Terminal 1: Subscribe to error notifications (direct exchange)
 curl -X POST http://localhost:3000/pub_sub/direct/start_subscriber \
   -d "subscriber_name=error_handler" -d "routing_key=error.critical"
@@ -169,9 +186,13 @@ curl -X POST http://localhost:3000/pub_sub/direct/publish \
 ```
 
 ### Exercise 5: Topic Routing
-Demonstrate selective message routing by pattern:
-
+**Automated Tests**: Integration spec verifies routing pattern matching
 ```bash
+# Run automated tests
+bundle exec rspec spec/integration/topic_integration_spec.rb
+bundle exec rspec spec/controllers/pub_sub/topic_controller_spec.rb
+
+# Manual verification - demonstrate selective message routing by pattern:
 # Terminal 1: Subscribe to user events (topic exchange)
 curl -X POST http://localhost:3000/pub_sub/topic/start_subscriber \
   -d "subscriber_name=user_service" -d "routing_pattern=user.*"
@@ -197,161 +218,18 @@ curl -X POST http://localhost:3000/pub_sub/topic/publish -d "message=Payment fai
 # - error_service gets "payment.error"
 ```
 
-## Class Structure (Educational)
-
-### Single Queue Classes
-```ruby
-Rabbitmq::Queue::Publisher.publish(queue_name, message)     # Send message to single queue
-Rabbitmq::Queue::WorkQueueJob.new.perform(queue_name)       # Consume message from queue
-```
-
-### Work Queue Classes
-```ruby
-Rabbitmq::Queue::WorkQueue.enqueue(queue_name, message)     # Send work to queue
-Rabbitmq::Queue::WorkQueueJob.new.perform(queue_name)       # Process work from queue
-```
-
-### Pub/Sub Classes
-```ruby
-# Publishing
-Rabbitmq::Exchange::Publisher.broadcast('demo_exchange', 'hello world')                    # Fanout
-Rabbitmq::Exchange::Publisher.publish_topic('demo_topic_exchange', 'kern.critical', 'msg')   # Topic
-
-# Subscribing
-Rabbitmq::Exchange::Subscriber.subscribe_to_exchange('demo_exchange', 'subscriber_name')        # Fanout
-Rabbitmq::Exchange::Subscriber.subscribe_to_topic('demo_topic_exchange', 'kern.*', 'subscriber_name')  # Topic
-```
-
-### Routing Classes
-```ruby
-# Publishing
-Rabbitmq::Exchange::Publisher.publish_direct('demo_direct_exchange', 'error.critical', 'critical msg')   # Direct exchange
-
-# Subscribing
-Rabbitmq::Exchange::Subscriber.subscribe_to_direct('demo_direct_exchange', 'error.critical', 'subscriber_name')  # Direct exchange
-```
-
-### Topic Classes
-```ruby
-# Publishing
-Rabbitmq::Exchange::Publisher.publish_topic('demo_topic_exchange', 'user.created', 'user created')   # Topic exchange
-
-# Subscribing
-Rabbitmq::Exchange::Subscriber.subscribe_to_topic('demo_topic_exchange', 'user.*', 'subscriber_name')  # Topic exchange
-```
-
-## Running the Learning Environment
+### Exercise 6: Headers Exchange
+**Automated Tests**: Controller and service tests for header-based routing
 ```bash
-docker-compose up 
+# Run automated tests
+bundle exec rspec spec/controllers/pub_sub/headers_controller_spec.rb
+
+# Manual verification - demonstrate header-based message routing:
+# Terminal 1: Start headers subscriber
+curl -X POST -d 'subscriber_name=reports&headers={"x-match":"all","type":"report"}' http://localhost:3000/pub_sub/headers/start_subscriber
+
+# Terminal 2: Publish headers message
+curl -X POST -d 'message=monthly_report&headers={"type":"report","format":"json"}' http://localhost:3000/pub_sub/headers/publish
+
+# Observe: reports subscriber receives the message based on header matching
 ```
-
-
-3. Use the exercises above or API endpoints to learn each pattern
-
-## Running tests and checks for each RabbitMQ pattern
-
-This project includes a few automated specs (integration/service) and manual checks you can run locally. All automated tests that interact with RabbitMQ require RabbitMQ to be running (use Docker Compose below).
-
-1) Start RabbitMQ (in background)
-
-```bash
-# from project root
-docker compose up
-```
-
-2) Run the tests for each pattern
-
-- Single Queue (1P → 1C)
-  - Automated: service spec that verifies publishing to a queue
-    ```bash
-    bundle exec rspec spec/services/rabbitmq_producer_spec.rb
-    ```
-  - Manual quick check:
-    ```bash
-    # start a consumer in one terminal (background thread via controller or rails runner)
-    curl -X POST -d "consumer_name=consumer_1" http://localhost:3000/single_queue/start_consumer
-
-    # send a message from another terminal
-    curl -X POST -d "message=hello_single" http://localhost:3000/single_queue/enqueue
-    ```
-
-- Work Queue (1P → many Cs — competing consumers)
-  - Automated integration spec:
-    ```bash
-    bundle exec rspec spec/integration/work_queue_integration_spec.rb
-    ```
-  - Manual quick check:
-    ```bash
-    # start two workers (separate terminals)
-    curl -X POST -d "worker_name=worker_1" http://localhost:3000/work_queues/start_worker
-    curl -X POST -d "worker_name=worker_2" http://localhost:3000/work_queues/start_worker
-
-    # enqueue tasks
-    curl -X POST -d "message=task1" http://localhost:3000/work_queues/enqueue
-    curl -X POST -d "message=task2" http://localhost:3000/work_queues/enqueue
-    ```
-
-- Publish/Subscribe (Fanout)
-  - Automated integration spec:
-    ```bash
-    bundle exec rspec spec/integration/pub_sub_integration_spec.rb
-    ```
-  - Manual quick check:
-    ```bash
-    # start multiple subscribers
-    curl -X POST -d "subscriber_name=sub1" http://localhost:3000/pub_sub/fanout/start_subscriber
-    curl -X POST -d "subscriber_name=sub2" http://localhost:3000/pub_sub/fanout/start_subscriber
-
-    # broadcast a message
-    curl -X POST -d "message=hello_all" http://localhost:3000/pub_sub/fanout/broadcast
-    ```
-
-- Routing (Direct exchange — exact routing key)
-  - No dedicated automated spec included by default. Manual check:
-    ```bash
-    # start subscribers with routing keys
-    curl -X POST -d "subscriber_name=errors&routing_key=error.critical" http://localhost:3000/pub_sub/direct/start_subscriber
-    curl -X POST -d "subscriber_name=infos&routing_key=info" http://localhost:3000/pub_sub/direct/start_subscriber
-
-    # publish messages
-    curl -X POST -d "message=critical_error&routing_key=error.critical" http://localhost:3000/pub_sub/direct/publish
-    curl -X POST -d "message=just_info&routing_key=info" http://localhost:3000/pub_sub/direct/publish
-    ```
-
-- Topics (Topic exchange — pattern matching)
-  - No dedicated automated spec included by default. Manual check:
-    ```bash
-    # start topic subscribers
-    curl -X POST -d "subscriber_name=user_svc&routing_pattern=user.*" http://localhost:3000/topic/start_subscriber
-    curl -X POST -d "subscriber_name=all&routing_pattern=#" http://localhost:3000/topic/start_subscriber
-
-    # publish topic messages
-    curl -X POST -d "message=new_user&routing_key=user.created" http://localhost:3000/topic/publish
-    ```
-
-3) Run all tests
-
-```bash
-# run full test suite (will include fast unit tests and any integration specs you have)
-bundle exec rspec
-```
-
-Notes
-- Integration specs that require RabbitMQ will fail if RabbitMQ is not running or reachable. Use `docker compose ps` to confirm the rabbitmq service is up.
-- The controllers in this project start subscribers/workers in background threads for demo purposes. For reliable long-running workers run the namespaced job class in separate processes (rails runner or dedicated worker processes).
-
-## Key Learning Points
-
-| Controller | Pattern | Key Concept | When to Use |
-|------------|---------|-------------|-------------|
-| **SingleQueueController** | Single Queue | Simple pub/sub | One-off tasks, demos |
-| **WorkQueueController** | Work Queue | Task distribution | Background jobs, load balancing |
-| **PubSubController** | Fanout, Direct, Topic, Headers | Broadcasting, selective delivery | System notifications, event-driven architecture |
-| **PubSub::DirectController** | Direct (Routing) | Selective delivery | Exact match filtering |
-| **PubSub::TopicController** | Topic | Selective routing | Event-driven architecture, microservices |
-
-## Environment Variables
-
-- `RABBITMQ_HOST` - RabbitMQ server hostname (default: localhost)
-
-This structure makes it easy to learn each RabbitMQ pattern independently by focusing on one controller at a time.
