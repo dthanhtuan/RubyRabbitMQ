@@ -25,6 +25,8 @@ Things you may want to cover:
 
 This Rails application demonstrates all five common RabbitMQ messaging patterns with clearly named, purpose-specific classes.
 
+See: [rabbitmq_overview.md](docs/rabbitmq_overview.md) for concise code examples of each pattern.
+
 ## Project Structure for Learning
 
 Each RabbitMQ messaging pattern has its own dedicated controller and namespace:
@@ -307,43 +309,37 @@ Rabbitmq::Queue::WorkQueueJob.new.perform(queue_name)       # Process work from 
 ### Pub/Sub Classes
 ```ruby
 # Publishing
-Rabbitmq::Exchange::Publisher.broadcast(exchange_name, message)                    # Fanout
-Rabbitmq::Exchange::Publisher.publish_topic(exchange_name, routing_key, message)   # Topic
+Rabbitmq::Exchange::Publisher.broadcast('demo_exchange', 'hello world')                    # Fanout
+Rabbitmq::Exchange::Publisher.publish_topic('demo_topic_exchange', 'kern.critical', 'msg')   # Topic
 
 # Subscribing
-Rabbitmq::Exchange::Subscriber.subscribe_to_exchange(exchange_name, subscriber_name)        # Fanout
-Rabbitmq::Exchange::Subscriber.subscribe_to_topic(exchange_name, pattern, subscriber_name)  # Topic
+Rabbitmq::Exchange::Subscriber.subscribe_to_exchange('demo_exchange', 'subscriber_name')        # Fanout
+Rabbitmq::Exchange::Subscriber.subscribe_to_topic('demo_topic_exchange', 'kern.*', 'subscriber_name')  # Topic
 ```
 
 ### Routing Classes
 ```ruby
 # Publishing
-Rabbitmq::Exchange::Publisher.publish_direct(routing_key, message)   # Direct exchange
+Rabbitmq::Exchange::Publisher.publish_direct('demo_direct_exchange', 'error.critical', 'critical msg')   # Direct exchange
 
 # Subscribing
-Rabbitmq::Exchange::Subscriber.subscribe_to_direct(routing_key, subscriber_name)  # Direct exchange
+Rabbitmq::Exchange::Subscriber.subscribe_to_direct('demo_direct_exchange', 'error.critical', 'subscriber_name')  # Direct exchange
 ```
 
 ### Topic Classes
 ```ruby
 # Publishing
-Rabbitmq::Exchange::Publisher.publish_topic(exchange_name, routing_key, message)   # Topic exchange
+Rabbitmq::Exchange::Publisher.publish_topic('demo_topic_exchange', 'user.created', 'user created')   # Topic exchange
 
 # Subscribing
-Rabbitmq::Exchange::Subscriber.subscribe_to_topic(exchange_name, pattern, subscriber_name)  # Topic exchange
+Rabbitmq::Exchange::Subscriber.subscribe_to_topic('demo_topic_exchange', 'user.*', 'subscriber_name')  # Topic exchange
 ```
 
 ## Running the Learning Environment
+```bash
+docker-compose up 
+```
 
-1. Start RabbitMQ:
-   ```bash
-   docker-compose up rabbitmq
-   ```
-
-2. Start Rails:
-   ```bash
-   rails server
-   ```
 
 3. Use the exercises above or API endpoints to learn each pattern
 
