@@ -1,26 +1,21 @@
-# README
+# Hands\-on RabbitMQ learning with Ruby on Rails
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Excited to share a small hands\-on Rails project for learning RabbitMQ patterns.
 
-Things you may want to cover:
+## Summary
 
-* Ruby version
+- A compact Ruby on Rails demo that teaches five core RabbitMQ messaging patterns: Single queue, Work queue, Fanout, Direct/Routing, Topic, and Headers.  
+- Purpose-specific controllers and concise examples in `docs/rabbitmq_overview.md`.
 
-* System dependencies
+## Brief project details
 
-* Configuration
+- **Structure:** Each pattern has its own controller and service classes so you can focus on one pattern at a time (e.g., `SingleQueueController`, `WorkQueueController`, `PubSubController` with direct/topic subroutes).  
+- **Hands\-on exercises:** Step-by-step `curl` commands in this `README.md` to start subscribers/publishers and observe behavior locally.  
+- **Exchanges and queues:** Demonstrates Fanout (broadcast), Direct (exact routing), Topic (wildcards: `*` and `#`), and Headers (`x-match`) with practical examples.  
+- **Testing & environment:** Includes RSpec examples and integration checks; run RabbitMQ locally with `docker compose up` and execute the provided specs or manual checks.  
+- **Who it’s for:** Developers learning messaging, microservices, or integrating RabbitMQ with Rails who want runnable examples and quick experiments.
 
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
+See `README.md` and `docs/rabbitmq_overview.md` for how to get started and the full exercise list.
 ## RabbitMQ Example Usage
 
 This Rails application demonstrates all five common RabbitMQ messaging patterns with clearly named, purpose-specific classes.
