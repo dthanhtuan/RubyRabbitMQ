@@ -55,7 +55,7 @@ This separation makes it easy to understand each pattern independently.
 - Messages sent to a specific queue (`demo_queue`)
 - Good for: Simple use cases, learning, when only one consumer should process messages
 
-  ![single_queue.png](docs/imgs/single_queue_console.png)
+  ![single_queue.png](docs/imgs/single_queue.png)
 
 ### Work Queue Pattern (`WorkQueueController`): Distributing tasks among workers (the competing consumers pattern)
 - https://www.rabbitmq.com/tutorials/tutorial-two-ruby
