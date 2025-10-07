@@ -1,5 +1,5 @@
 class SingleQueueController < ApplicationController
-  DEMO_QUEUE = 'single_demo_queue'
+  DEMO_QUEUE = "single_demo_queue"
 
   # Send a simple message to a single queue (1P -> 1C)
   def enqueue
@@ -8,10 +8,10 @@ class SingleQueueController < ApplicationController
     Rabbitmq::Queue::Publisher.publish(DEMO_QUEUE, message)
 
     render json: {
-      status: 'Message enqueued to single queue',
+      status: "Message enqueued to single queue",
       message: message,
       queue: DEMO_QUEUE,
-      pattern: 'Single Queue - one producer and one consumer'
+      pattern: "Single Queue - one producer and one consumer"
     }
   end
 
@@ -26,10 +26,10 @@ class SingleQueueController < ApplicationController
     end
 
     render json: {
-      status: 'Single queue consumer started',
+      status: "Single queue consumer started",
       consumer_name: consumer_name,
       queue: DEMO_QUEUE,
-      note: 'Consumer is running in background thread'
+      note: "Consumer is running in background thread"
     }
   end
 end

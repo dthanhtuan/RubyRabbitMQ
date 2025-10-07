@@ -1,5 +1,5 @@
 class PubSub::FanoutController < ApplicationController
-  DEMO_EXCHANGE = 'demo_exchange'
+  DEMO_EXCHANGE = "demo_exchange"
 
   # Broadcast message to all subscribers using fanout exchange
   def broadcast
@@ -7,10 +7,10 @@ class PubSub::FanoutController < ApplicationController
     Rabbitmq::Exchange::Publisher.broadcast(DEMO_EXCHANGE, message)
 
     render json: {
-      status: 'Message broadcasted',
+      status: "Message broadcasted",
       message: message,
       exchange: DEMO_EXCHANGE,
-      pattern: 'Fanout - all subscribers receive this message'
+      pattern: "Fanout - all subscribers receive this message"
     }
   end
 
@@ -23,11 +23,10 @@ class PubSub::FanoutController < ApplicationController
     end
 
     render json: {
-      status: 'Subscriber started',
+      status: "Subscriber started",
       subscriber_name: subscriber_name,
       exchange: DEMO_EXCHANGE,
-      note: 'Subscriber is running in background thread'
+      note: "Subscriber is running in background thread"
     }
   end
 end
-

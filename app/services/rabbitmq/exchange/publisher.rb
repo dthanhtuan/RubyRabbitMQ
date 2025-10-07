@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'bunny'
+require "bunny"
 
 module Rabbitmq
   module Exchange
     class Publisher
       # Publish to fanout exchange (all subscribers receive the message)
       def self.broadcast(exchange_name, message)
-        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection = Bunny.new(hostname: ENV.fetch("RABBITMQ_HOST", "localhost"))
         connection.start
 
         channel = connection.create_channel
@@ -21,7 +21,7 @@ module Rabbitmq
 
       # Publish to topic exchange with routing key
       def self.publish_topic(exchange_name, routing_key, message)
-        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection = Bunny.new(hostname: ENV.fetch("RABBITMQ_HOST", "localhost"))
         connection.start
 
         channel = connection.create_channel
@@ -35,7 +35,7 @@ module Rabbitmq
 
       # Publish to a direct exchange with a routing key (routing pattern)
       def self.publish_direct(exchange_name, routing_key, message)
-        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection = Bunny.new(hostname: ENV.fetch("RABBITMQ_HOST", "localhost"))
         connection.start
 
         channel = connection.create_channel
@@ -50,7 +50,7 @@ module Rabbitmq
       # Publish to a headers exchange. `headers_hash` should include header key/values
       # and may include 'x-match' => 'all' or 'any' when binding subscribers.
       def self.publish_headers(exchange_name, headers_hash, message)
-        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection = Bunny.new(hostname: ENV.fetch("RABBITMQ_HOST", "localhost"))
         connection.start
 
         channel = connection.create_channel

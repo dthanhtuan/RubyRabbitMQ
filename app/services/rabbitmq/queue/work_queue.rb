@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'bunny'
+require "bunny"
 
 module Rabbitmq
   module Queue
     class WorkQueue
       # Send message to a specific queue for work distribution
       def self.enqueue(queue_name, message)
-        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection = Bunny.new(hostname: ENV.fetch("RABBITMQ_HOST", "localhost"))
         connection.start
 
         channel = connection.create_channel
@@ -22,4 +22,3 @@ module Rabbitmq
     end
   end
 end
-

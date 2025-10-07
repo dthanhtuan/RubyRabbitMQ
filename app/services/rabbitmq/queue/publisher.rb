@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'bunny'
+require "bunny"
 
 module Rabbitmq
   module Queue
     class Publisher
       # Publish to a durable queue (used by tests expecting durable queue)
       def self.publish(queue_name, message)
-        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection = Bunny.new(hostname: ENV.fetch("RABBITMQ_HOST", "localhost"))
         connection.start
 
         channel = connection.create_channel
@@ -21,4 +21,3 @@ module Rabbitmq
     end
   end
 end
-

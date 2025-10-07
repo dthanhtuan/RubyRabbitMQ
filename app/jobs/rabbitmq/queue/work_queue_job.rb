@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'bunny'
+require "bunny"
 
 module Rabbitmq
   module Queue
@@ -9,7 +9,7 @@ module Rabbitmq
 
       # Process work from a specific queue (work queue pattern)
       def perform(queue_name)
-        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection = Bunny.new(hostname: ENV.fetch("RABBITMQ_HOST", "localhost"))
         connection.start
         channel = connection.create_channel
         # Fair dispatch: allow one unacknowledged message at a time per worker

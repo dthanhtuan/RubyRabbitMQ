@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class WorkQueuesController < ApplicationController
-  DEMO_QUEUE = 'demo_queue'
+  DEMO_QUEUE = "demo_queue"
 
   # Send work task to queue for processing by workers
   def enqueue
@@ -9,10 +9,10 @@ class WorkQueuesController < ApplicationController
     Rabbitmq::Queue::WorkQueue.enqueue(DEMO_QUEUE, message)
 
     render json: {
-      status: 'Work enqueued',
+      status: "Work enqueued",
       message: message,
       queue: DEMO_QUEUE,
-      pattern: 'Work Queue - one worker will process this task'
+      pattern: "Work Queue - one worker will process this task"
     }
   end
 
@@ -27,10 +27,10 @@ class WorkQueuesController < ApplicationController
     end
 
     render json: {
-      status: 'Work queue worker started',
+      status: "Work queue worker started",
       worker_name: worker_name,
       queue: DEMO_QUEUE,
-      note: 'Worker is running in background thread'
+      note: "Worker is running in background thread"
     }
   end
 end

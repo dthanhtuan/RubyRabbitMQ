@@ -1,5 +1,5 @@
 class PubSub::HeadersController < ApplicationController
-  DEMO_HEADERS_EXCHANGE = 'demo_headers_exchange'
+  DEMO_HEADERS_EXCHANGE = "demo_headers_exchange"
 
   # Publish to headers exchange with provided headers (expects JSON or form fields)
   def publish
@@ -9,7 +9,7 @@ class PubSub::HeadersController < ApplicationController
     Rabbitmq::Exchange::Publisher.publish_headers(DEMO_HEADERS_EXCHANGE, headers_hash, message)
 
     render json: {
-      status: 'Message published to headers exchange',
+      status: "Message published to headers exchange",
       message: message,
       exchange: DEMO_HEADERS_EXCHANGE,
       headers: headers_hash
@@ -26,11 +26,11 @@ class PubSub::HeadersController < ApplicationController
     end
 
     render json: {
-      status: 'Headers subscriber started',
+      status: "Headers subscriber started",
       subscriber_name: subscriber_name,
       exchange: DEMO_HEADERS_EXCHANGE,
       bind_headers: headers_hash,
-      note: 'Headers subscriber is running in background thread'
+      note: "Headers subscriber is running in background thread"
     }
   end
 
@@ -52,4 +52,3 @@ class PubSub::HeadersController < ApplicationController
     end
   end
 end
-

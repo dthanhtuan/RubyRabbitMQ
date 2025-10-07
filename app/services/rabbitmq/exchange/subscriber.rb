@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'bunny'
+require "bunny"
 
 module Rabbitmq
   module Exchange
     class Subscriber
       # Subscribe to a fanout exchange (all subscribers get all messages)
       def self.subscribe_to_exchange(exchange_name, subscriber_name)
-        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection = Bunny.new(hostname: ENV.fetch("RABBITMQ_HOST", "localhost"))
         connection.start
 
         channel = connection.create_channel
@@ -43,7 +43,7 @@ module Rabbitmq
 
       # Subscribe to a topic exchange with routing key patterns
       def self.subscribe_to_topic(exchange_name, routing_pattern, subscriber_name)
-        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection = Bunny.new(hostname: ENV.fetch("RABBITMQ_HOST", "localhost"))
         connection.start
 
         channel = connection.create_channel
@@ -79,7 +79,7 @@ module Rabbitmq
 
       # Subscribe to a direct exchange with a specific routing key (routing pattern)
       def self.subscribe_to_direct(exchange_name, routing_key, subscriber_name)
-        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection = Bunny.new(hostname: ENV.fetch("RABBITMQ_HOST", "localhost"))
         connection.start
 
         channel = connection.create_channel
@@ -114,7 +114,7 @@ module Rabbitmq
       # Subscribe to a headers exchange. `headers_hash` should match subscriber binding criteria
       # Example headers_hash: { 'x-match' => 'all', 'type' => 'report' }
       def self.subscribe_to_headers(exchange_name, headers_hash, subscriber_name)
-        connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
+        connection = Bunny.new(hostname: ENV.fetch("RABBITMQ_HOST", "localhost"))
         connection.start
 
         channel = connection.create_channel
@@ -162,4 +162,3 @@ module Rabbitmq
     end
   end
 end
-
