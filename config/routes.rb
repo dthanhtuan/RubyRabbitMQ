@@ -13,10 +13,8 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   # Work Queue Pattern - Task distribution among workers
-  namespace :work_queue do
-    post 'enqueue', to: 'work_queue#enqueue'
-    post 'start_worker', to: 'work_queue#start_worker'
-  end
+    post 'work_queue/enqueue', to: 'work_queue#enqueue'
+    post 'work_queue/start_worker', to: 'work_queue#start_worker'
 
   # Pub/Sub Fanout Pattern - Broadcast to all subscribers
   namespace :pub_sub do
@@ -38,10 +36,8 @@ Rails.application.routes.draw do
   end
 
   # Single Queue Pattern - Simple 1P -> 1C example
-  namespace :single_queue do
-    post 'enqueue', to: 'single_queue#enqueue'
-    post 'start_consumer', to: 'single_queue#start_consumer'
-  end
+  post 'single_queue/enqueue', to: 'single_queue#enqueue'
+  post 'single_queue/start_consumer', to: 'single_queue#start_consumer'
 
   # Note: Routing and Topic examples are now under the pub_sub namespace as focused controllers
 
