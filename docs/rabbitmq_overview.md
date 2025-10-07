@@ -2,7 +2,7 @@
 
 This file provides concise Ruby (Bunny) examples showing how messages are enqueued and received for each RabbitMQ pattern used in this project.
 
-Single queue (direct to a named queue)
+## Single queue (direct to a named queue)
 ```ruby
 # Enqueue
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -22,7 +22,7 @@ queue.subscribe(block: true) do |_delivery_info, _properties, body|
 end
 ```
 
-Work queue (task distribution; consumer uses prefetch + manual ack)
+## Work queue (task distribution; consumer uses prefetch + manual ack)
 ```ruby
 # Enqueue (same as single queue)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -36,7 +36,7 @@ connection.close
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
 connection.start
 channel = connection.create_channel
-channel.prefetch(1)
+channel.prefetch(1) # fair dispatch - one message at a time
 queue = channel.queue('work_queue', durable: true)
 queue.subscribe(manual_ack: true, block: true) do |delivery_info, _properties, body|
   begin
@@ -49,7 +49,7 @@ queue.subscribe(manual_ack: true, block: true) do |delivery_info, _properties, b
 end
 ```
 
-Fanout exchange (broadcast)
+## Fanout exchange (broadcast)
 ```ruby
 # Enqueue (publish to fanout exchange)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -71,7 +71,7 @@ queue.subscribe(block: true) do |_delivery_info, _properties, body|
 end
 ```
 
-Direct exchange (Routing pattern — exact routing_key)
+## Direct exchange (Routing pattern — exact routing_key)
 ```ruby
 # Enqueue
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -93,7 +93,7 @@ queue.subscribe(block: true) do |delivery_info, _properties, body|
 end
 ```
 
-Topic exchange (Topic pattern — '*' and '#' wildcards)
+## Topic exchange (Topic pattern — '*' and '#' wildcards)
 ```ruby
 # Enqueue
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -115,7 +115,7 @@ queue.subscribe(block: true) do |delivery_info, _properties, body|
 end
 ```
 
-Headers exchange (header-based routing)
+## Headers exchange (header-based routing)
 ```ruby
 # Enqueue (set headers on published message)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -137,7 +137,7 @@ queue.subscribe(block: true) do |_delivery_info, properties, body|
 end
 ```
 
-Notes:
+## Notes:
 - Queues/exchanges are declared durable and messages are published persistent where appropriate in this project.
 - For work queues, set prefetch and use manual acknowledgements on the consumer side for fair dispatch.
 - Topic patterns: '*' matches exactly one word, '#' matches zero-or-more words.

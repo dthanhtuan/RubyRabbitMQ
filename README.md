@@ -42,12 +42,14 @@ This separation makes it easy to understand each pattern independently.
 ## Architecture Overview
 
 ### Single Queue Pattern (`SingleQueueController`)
+- https://www.rabbitmq.com/tutorials/tutorial-one-ruby
 - **RabbitmqSingleQueue** - Enqueues messages to a single queue
 - **RabbitmqSingleConsumer** - Consumes messages from the queue
 - Messages sent to a specific queue (`demo_queue`)
 - Good for: Simple use cases, learning, when only one consumer should process messages
 
 ### Work Queue Pattern (`WorkQueueController`)
+- https://www.rabbitmq.com/tutorials/tutorial-two-ruby
 - **Rabbitmq::Queue::WorkQueue** - Enqueues work tasks to specific queues
 - **Rabbitmq::Queue::WorkQueueJob** - Workers that process tasks from queues
 - Messages sent to a specific queue (`demo_queue`)
@@ -56,6 +58,7 @@ This separation makes it easy to understand each pattern independently.
 - Good for: Task distribution, job processing
 
 ### Publish/Subscribe Patterns (`PubSubController`)
+- https://www.rabbitmq.com/tutorials/tutorial-three-ruby
 - `Rabbitmq::Exchange::Publisher` — publishes to fanout, direct, topic, and headers exchanges  
 - `Rabbitmq::Exchange::Subscriber` — subscribes to exchanges (fanout, direct, topic, headers)
 
@@ -88,6 +91,7 @@ Headers (`demo_headers_exchange`)
   - Selective delivery requiring combinations of header values
 
 ### Routing Pattern (`RoutingController`)
+- https://www.rabbitmq.com/tutorials/tutorial-four-ruby
 - **Rabbitmq::Exchange::Publisher** - Publishes messages with routing keys to a direct exchange
 - **Rabbitmq::Exchange::Subscriber** - Subscribes with exact routing keys
 - Messages sent to direct exchange (`demo_direct_exchange`)
@@ -95,6 +99,7 @@ Headers (`demo_headers_exchange`)
 - Good for: Selective delivery by exact category/severity
 
 ### Topic Pattern (`TopicController`)
+- https://www.rabbitmq.com/tutorials/tutorial-five-ruby
 - **Rabbitmq::Exchange::Publisher** - Publishes messages with routing keys
 - **Rabbitmq::Exchange::Subscriber** - Subscribes with routing patterns
 - Messages sent to topic exchange (`demo_topic_exchange`)
