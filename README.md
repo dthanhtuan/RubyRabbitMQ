@@ -41,24 +41,28 @@ This separation makes it easy to understand each pattern independently.
 
 ## Architecture Overview
 
-### Single Queue Pattern (`SingleQueueController`)
+### Single Queue Pattern (`SingleQueueController`): The simplest thing that does something
 - https://www.rabbitmq.com/tutorials/tutorial-one-ruby
 - **RabbitmqSingleQueue** - Enqueues messages to a single queue
 - **RabbitmqSingleConsumer** - Consumes messages from the queue
 - Messages sent to a specific queue (`demo_queue`)
 - Good for: Simple use cases, learning, when only one consumer should process messages
 
-### Work Queue Pattern (`WorkQueueController`)
+  ![single_queue.png](docs/imgs/single_queue.png)
+
+### Work Queue Pattern (`WorkQueueController`): Distributing tasks among workers (the competing consumers pattern)
 - https://www.rabbitmq.com/tutorials/tutorial-two-ruby
 - **Rabbitmq::Queue::WorkQueue** - Enqueues work tasks to specific queues
 - **Rabbitmq::Queue::WorkQueueJob** - Workers that process tasks from queues
 - Messages sent to a specific queue (`demo_queue`)
 - Multiple workers compete for tasks (load balancing)
 - Each task processed by exactly one worker
-- Good for: Task distribution, job processing
+- Good for: Task distribution, job processing.
 
-### Publish/Subscribe Patterns (`PubSubController`)
-- https://www.rabbitmq.com/tutorials/tutorial-three-ruby
+    ![work_queues.png](docs/imgs/work_queues.png)
+
+### Publish/Subscribe Patterns (`PubSubController`): Sending messages to many consumers at once
+- https://www.rabbitmq.com/tutorials/tutorial-three-ruby 
 - `Rabbitmq::Exchange::Publisher` — publishes to fanout, direct, topic, and headers exchanges  
 - `Rabbitmq::Exchange::Subscriber` — subscribes to exchanges (fanout, direct, topic, headers)
 
@@ -90,7 +94,9 @@ Headers (`demo_headers_exchange`)
   - When routing depends on attributes instead of a routing key
   - Selective delivery requiring combinations of header values
 
-### Routing Pattern (`RoutingController`)
+  ![pub_sub.png](docs/imgs/pub_sub.png)
+
+### Routing Pattern (`RoutingController`): Receiving messages selectively
 - https://www.rabbitmq.com/tutorials/tutorial-four-ruby
 - **Rabbitmq::Exchange::Publisher** - Publishes messages with routing keys to a direct exchange
 - **Rabbitmq::Exchange::Subscriber** - Subscribes with exact routing keys
@@ -98,7 +104,9 @@ Headers (`demo_headers_exchange`)
 - Subscribers receive messages only if their routing key matches exactly
 - Good for: Selective delivery by exact category/severity
 
-### Topic Pattern (`TopicController`)
+    ![routing.png](docs/imgs/routing.png)
+
+### Topic Pattern (`TopicController`): Receiving messages based on a pattern (topics)
 - https://www.rabbitmq.com/tutorials/tutorial-five-ruby
 - **Rabbitmq::Exchange::Publisher** - Publishes messages with routing keys
 - **Rabbitmq::Exchange::Subscriber** - Subscribes with routing patterns
@@ -106,6 +114,7 @@ Headers (`demo_headers_exchange`)
 - Subscribers filter messages by routing key patterns
 - Good for: Event-driven architecture, flexible routing by patterns
 
+    ![topics.png](docs/imgs/topics.png)
 ## API Endpoints (Learning-Focused)
 
 ### Single Queue Pattern
