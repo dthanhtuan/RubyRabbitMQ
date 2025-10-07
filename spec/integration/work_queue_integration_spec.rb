@@ -3,13 +3,13 @@ require 'rails_helper'
 RSpec.describe 'Work Queue integration', type: :integration do
   it 'distributes messages among multiple consumers' do
     queue_name = "integration_work_queue_#{SecureRandom.hex(4)}"
-    messages = 6.times.map { |i| "msg#{i}_#{SecureRandom.hex(4)}" }
+    messages = Array.new(6) { |i| "msg#{i}_#{SecureRandom.hex(4)}" }
 
     Bunny.run(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost')) do |conn|
       channel = conn.create_channel
       # Match application queue declaration (durable: true)
       q1 = channel.queue(queue_name, durable: true)
-      q2 = channel.queue(queue_name, durable: true)
+      channel.queue(queue_name, durable: true)
 
       # Ensure queue is empty before test
       q1.purge
