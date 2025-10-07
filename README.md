@@ -32,7 +32,7 @@ See: [rabbitmq_overview.md](docs/rabbitmq_overview.md) for concise code examples
 Each RabbitMQ messaging pattern has its own dedicated controller and namespace:
 
 - **SingleQueueController** - `/single_queue/*` - Simplest case, 1 producer 1 consumer
-- **WorkQueueController** - `/work_queue/*` - Task distribution
+- **WorkQueueController** - `/work_queues/*` - Task distribution
 - **PubSubController** - `/pub_sub/*` - Fanout, Direct (routing), Topic and Headers exchanges (various pub/sub patterns)
 
 This separation makes it easy to understand each pattern independently.
@@ -102,11 +102,10 @@ Fanout (`demo_exchange`)
 ### Exercise 1: Single Queue
 ```bash
 # Terminal 1: Start consumer
-curl -X POST http://localhost:3000/single_queue/start_consumer \
-  -d '{"consumer_name": "consumer_1"}'
+curl -X POST http://localhost:3000/single_queue/start_consumer -d "consumer_name=consumer_1"
 
 # Terminal 2: Send message
-curl -X POST http://localhost:3000/single_queue/enqueue -d '{"message": "Hello, Single Queue!"}'
+curl -X POST http://localhost:3000/single_queue/enqueue -d "message=Hello, Single Queue!"
 
 # Observe: consumer_1 receives the message
 ```
@@ -116,17 +115,17 @@ Demonstrate task distribution among competing workers:
 
 ```bash
 # Terminal 1: Start first worker
-curl -X POST http://localhost:3000/work_queue/start_worker \
-  -d '{"worker_name": "worker_1"}'
+curl -X POST http://localhost:3000/work_queues/start_worker \
+  -d "worker_name=worker_1"
 
 # Terminal 2: Start second worker  
-curl -X POST http://localhost:3000/work_queue/start_worker \
-  -d '{"worker_name": "worker_2"}'
+curl -X POST http://localhost:3000/work_queues/start_worker \
+  -d "worker_name=worker_2"
 
 # Terminal 3: Send multiple tasks
-curl -X POST http://localhost:3000/work_queue/enqueue -d '{"message": "Task 1"}'
-curl -X POST http://localhost:3000/work_queue/enqueue -d '{"message": "Task 2"}'
-curl -X POST http://localhost:3000/work_queue/enqueue -d '{"message": "Task 3"}'
+curl -X POST http://localhost:3000/work_queues/enqueue -d "message=Task 1"
+curl -X POST http://localhost:3000/work_queues/enqueue -d "message=Task 2"
+curl -X POST http://localhost:3000/work_queues/enqueue -d "message=Task 3"
 
 # Observe: Tasks are distributed between worker_1 and worker_2
 ```
@@ -137,15 +136,15 @@ Show how all subscribers receive the same message:
 ```bash
 # Terminal 1: Start email service subscriber
 curl -X POST http://localhost:3000/pub_sub/fanout/start_subscriber \
-  -d '{"subscriber_name": "email_service"}'
+  -d "subscriber_name=email_service"
 
 # Terminal 2: Start SMS service subscriber
 curl -X POST http://localhost:3000/pub_sub/fanout/start_subscriber \
-  -d '{"subscriber_name": "sms_service"}'
+  -d "subscriber_name=sms_service"
 
 # Terminal 3: Broadcast message
 curl -X POST http://localhost:3000/pub_sub/fanout/broadcast \
-  -d '{"message": "System will be down for maintenance"}'
+  -d "message=System will be down for maintenance"
 
 # Observe: Both email_service and sms_service receive the same message
 ```
@@ -156,18 +155,18 @@ Demonstrate selective message routing by exact match:
 ```bash
 # Terminal 1: Subscribe to error notifications (direct exchange)
 curl -X POST http://localhost:3000/pub_sub/direct/start_subscriber \
-  -d '{"subscriber_name": "error_handler", "routing_key": "error.critical"}'
+  -d "subscriber_name=error_handler" -d "routing_key=error.critical"
 
 # Terminal 2: Subscribe to info notifications (direct exchange)
 curl -X POST http://localhost:3000/pub_sub/direct/start_subscriber \
-  -d '{"subscriber_name": "info_handler", "routing_key": "info"}'
+  -d "subscriber_name=info_handler" -d "routing_key=info"
 
 # Terminal 3: Publish messages (direct exchange)
 curl -X POST http://localhost:3000/pub_sub/direct/publish \
-  -d '{"message": "Critical system error", "routing_key": "error.critical"}'
+  -d "message=Critical system error" -d "routing_key=error.critical"
 
 curl -X POST http://localhost:3000/pub_sub/direct/publish \
-  -d '{"message": "Informational message", "routing_key": "info"}'
+  -d "message=Informational message" -d "routing_key=info"
 
 # Observe routing:
 # - error_handler gets "Critical system error"
@@ -180,25 +179,22 @@ Demonstrate selective message routing by pattern:
 ```bash
 # Terminal 1: Subscribe to user events (topic exchange)
 curl -X POST http://localhost:3000/pub_sub/topic/start_subscriber \
-  -d '{"subscriber_name": "user_service", "routing_pattern": "user.*"}'
+  -d "subscriber_name=user_service" -d "routing_pattern=user.*"
 
 # Terminal 2: Subscribe to order events (topic exchange)
 curl -X POST http://localhost:3000/pub_sub/topic/start_subscriber \
-  -d '{"subscriber_name": "order_service", "routing_pattern": "order.*"}'
+  -d "subscriber_name=order_service" -d "routing_pattern=order.*"
 
 # Terminal 3: Subscribe to all error events (topic exchange)
 curl -X POST http://localhost:3000/pub_sub/topic/start_subscriber \
-  -d '{"subscriber_name": "error_service", "routing_pattern": "*.error"}'
+  -d "subscriber_name=error_service" -d "routing_pattern=*.error"
 
 # Terminal 4: Send different events (topic exchange)
-curl -X POST http://localhost:3000/pub_sub/topic/publish \
-  -d '{"message": "New user John", "routing_key": "user.created"}'
+curl -X POST http://localhost:3000/pub_sub/topic/publish -d "message=New user John" -d "routing_key=user.created"
 
-curl -X POST http://localhost:3000/pub_sub/topic/publish \
-  -d '{"message": "Order completed", "routing_key": "order.completed"}'
+curl -X POST http://localhost:3000/pub_sub/topic/publish -d "message=Order completed" -d "routing_key=order.completed"
 
-curl -X POST http://localhost:3000/pub_sub/topic/publish \
-  -d '{"message": "Payment failed", "routing_key": "payment.error"}'
+curl -X POST http://localhost:3000/pub_sub/topic/publish -d "message=Payment failed" -d "routing_key=payment.error"
 
 # Observe routing:
 # - user_service gets "user.created"
@@ -292,12 +288,12 @@ docker compose up
   - Manual quick check:
     ```bash
     # start two workers (separate terminals)
-    curl -X POST -d "worker_name=worker_1" http://localhost:3000/work_queue/start_worker
-    curl -X POST -d "worker_name=worker_2" http://localhost:3000/work_queue/start_worker
+    curl -X POST -d "worker_name=worker_1" http://localhost:3000/work_queues/start_worker
+    curl -X POST -d "worker_name=worker_2" http://localhost:3000/work_queues/start_worker
 
     # enqueue tasks
-    curl -X POST -d "message=task1" http://localhost:3000/work_queue/enqueue
-    curl -X POST -d "message=task2" http://localhost:3000/work_queue/enqueue
+    curl -X POST -d "message=task1" http://localhost:3000/work_queues/enqueue
+    curl -X POST -d "message=task2" http://localhost:3000/work_queues/enqueue
     ```
 
 - Publish/Subscribe (Fanout)

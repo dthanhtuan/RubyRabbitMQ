@@ -13,8 +13,8 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   # Work Queue Pattern - Task distribution among workers
-    post 'work_queue/enqueue', to: 'work_queue#enqueue'
-    post 'work_queue/start_worker', to: 'work_queue#start_worker'
+    post 'work_queues/enqueue', to: 'work_queues#enqueue'
+    post 'work_queues/start_worker', to: 'work_queues#start_worker'
 
   # Pub/Sub Fanout Pattern - Broadcast to all subscribers
   namespace :pub_sub do
