@@ -7,8 +7,9 @@ RSpec.describe 'Work Queue integration', type: :integration do
 
     Bunny.run(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost')) do |conn|
       channel = conn.create_channel
-      q1 = channel.queue(queue_name, durable: false)
-      q2 = channel.queue(queue_name, durable: false)
+      # Match application queue declaration (durable: true)
+      q1 = channel.queue(queue_name, durable: true)
+      q2 = channel.queue(queue_name, durable: true)
 
       # Ensure queue is empty before test
       q1.purge
@@ -22,8 +23,9 @@ RSpec.describe 'Work Queue integration', type: :integration do
       # Simulate two consumers by popping from the same queue using two channels
       ch_a = conn.create_channel
       ch_b = conn.create_channel
-      qa = ch_a.queue(queue_name, durable: false)
-      qb = ch_b.queue(queue_name, durable: false)
+      # Consumer channels must declare the queue with the same durability as the producer
+      qa = ch_a.queue(queue_name, durable: true)
+      qb = ch_b.queue(queue_name, durable: true)
 
       while (received1.size + received2.size) < messages.size
         d1 = qa.pop

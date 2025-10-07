@@ -7,7 +7,8 @@ RSpec.describe 'Pub/Sub (fanout) integration', type: :integration do
 
     Bunny.run(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost')) do |conn|
       channel = conn.create_channel
-      exchange_obj = channel.fanout(exchange, durable: false)
+      # Match application exchange declaration (durable: true)
+      exchange_obj = channel.fanout(exchange, durable: true)
 
       q1 = channel.queue('', exclusive: true)
       q2 = channel.queue('', exclusive: true)
