@@ -34,7 +34,7 @@ RSpec.describe 'Topic Exchange integration', type: :integration do
       info_msg = info_queue.pop[2]
 
       expect(error_msg).to eq(message1)
-      expect([all_logs_error, all_logs_info]).to contain_exactly(message1, message2)
+      expect([ all_logs_error, all_logs_info ]).to contain_exactly(message1, message2)
       expect(info_msg).to eq(message2)
     end
   end
