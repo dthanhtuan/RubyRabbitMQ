@@ -155,6 +155,7 @@ connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
 connection.start
 channel = connection.create_channel
 exchange = channel.topic('demo_topic_exchange', durable: true)
+# routing_key: similar to `direct` but supports patterns with '*' and '#'
 exchange.publish('user created', routing_key: 'user.created', persistent: true)
 connection.close
 
@@ -163,15 +164,19 @@ connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
 connection.start
 channel = connection.create_channel
 exchange = channel.topic('demo_topic_exchange', durable: true)
+# queue name can be anything unique per receiver
 queue = channel.queue('demo_topic_exchange.user_service', exclusive: false, auto_delete: true)
-queue.bind(exchange, routing_key: 'user.*')
+# routing_key patterns: 'user.*', 'user.#', '*.created', '#.critical', etc.
+queue.bind(exchange, routing_key: 'user.*') # receive messages with routing keys like 'user.created', 'user.deleted', etc.
 queue.subscribe(block: true) do |delivery_info, _properties, body|
   puts "Topic received [#{delivery_info.routing_key}]: #{body}"
 end
 ```
+### When 4 receivers are running with different patterns, each gets only matching messages
+![topic_patterns.png](imgs/topic/topic.png)
 
 ## Headers exchange (header-based routing)
-
+- https://www.rabbitmq.com/tutorials/amqp-concepts#exchange-headers
 ```ruby
 # Enqueue (set headers on published message)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -179,7 +184,7 @@ connection.start
 channel = connection.create_channel
 exchange = channel.headers('demo_headers_exchange', durable: true)
 exchange.publish('report payload', headers: { 'type' => 'report' }, persistent: true)
-connection.close
+# connection.close
 
 # Receive (bind with header matching)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
@@ -187,12 +192,15 @@ connection.start
 channel = connection.create_channel
 exchange = channel.headers('demo_headers_exchange', durable: true)
 queue = channel.queue('demo_headers_exchange.report_service', exclusive: false, auto_delete: true)
+# `x-match` can be 'all' or 'any': When the "x-match" argument is set to "any", just one matching header value is sufficient. 
+# Alternatively, setting "x-match" to "all" mandates that all the values must match.
 queue.bind(exchange, arguments: { 'x-match' => 'all', 'type' => 'report' })
 queue.subscribe(block: true) do |_delivery_info, properties, body|
   puts "Headers received [#{properties.headers.inspect}]: #{body}"
 end
 ```
-
+### When 4 receivers are running with different header bindings, each gets only matching messages
+![headers_patterns.png](imgs/headers/headers.png)
 ### Notes:
 
 - Queues/exchanges are declared durable and messages are published persistent where appropriate in this project.
