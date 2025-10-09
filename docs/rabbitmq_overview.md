@@ -105,7 +105,9 @@ exchange.publish('broadcast', persistent: true)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
 connection.start
 channel = connection.create_channel
-queue = channel.queue('demo_exchange.my_subscriber', exclusive: false, auto_delete: true)
+# queue = channel.queue('demo_exchange.my_subscriber_1', exclusive: false, auto_delete: true)
+# my_subscriber_name: change for each subscriber, ex: my_subscriber_1, my_subscriber_2, etc.
+queue = channel.queue('demo_exchange.my_subscriber_name_4', exclusive: false, auto_delete: true)
 exchange = channel.fanout('demo_exchange', durable: true)
 queue.bind(exchange)
 queue.subscribe(block: true) do |_delivery_info, _properties, body|
@@ -113,7 +115,8 @@ queue.subscribe(block: true) do |_delivery_info, _properties, body|
 end
 ```
 
-#### When 4 subscribers are running, both get the message
+#### When 4 subscribers are running, all receive each message
+![4_subscribers.png](imgs/fanout/4_subscribers.png)
 
 ### Direct exchange (Routing pattern — exact routing_key)
 
