@@ -16,8 +16,7 @@ pattern used in this project.
 ## Log into web container
 
 ```bash
-docker-compose exec web bash
-# bundle exec rails console
+  sh rails_console.sh
 ```
 
 ## Single queue (direct to a named queue)
