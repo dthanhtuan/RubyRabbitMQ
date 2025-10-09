@@ -5,7 +5,7 @@ Excited to share a small hands\-on Rails project for learning RabbitMQ patterns.
 ## Summary
 
 - A compact Ruby on Rails demo that teaches five core RabbitMQ messaging patterns: Single queue, Work queue, Fanout, Direct/Routing, Topic, and Headers.  
-- Purpose-specific controllers and concise examples in `docs/rabbitmq_overview.md`.
+- Purpose-specific controllers and concise examples in [rabbitmq_overview.md](docs/rabbitmq_overview.md).
 
 ## Brief project details
 
