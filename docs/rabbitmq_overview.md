@@ -105,7 +105,6 @@ exchange.publish('broadcast', persistent: true)
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
 connection.start
 channel = connection.create_channel
-# queue = channel.queue('demo_exchange.my_subscriber_1', exclusive: false, auto_delete: true)
 # my_subscriber_name: change for each subscriber, ex: my_subscriber_1, my_subscriber_2, etc.
 queue = channel.queue('demo_exchange.my_subscriber_name_4', exclusive: false, auto_delete: true)
 exchange = channel.fanout('demo_exchange', durable: true)
@@ -119,27 +118,34 @@ end
 ![4_subscribers.png](imgs/fanout/4_subscribers.png)
 
 ### Direct exchange (Routing pattern — exact routing_key)
-
+- The routing algorithm behind a direct exchange is simple - a message goes to the queues whose `binding key exactly matches` the routing key of the message.
 ```ruby
 # Enqueue
+routing_key = 'error.critical'  # routing_key ex: 'info', 'error.critical', 'user.created', etc.
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
 connection.start
 channel = connection.create_channel
 exchange = channel.direct('demo_direct_exchange', durable: true)
-exchange.publish('critical payload', routing_key: 'error.critical', persistent: true)
-connection.close
+exchange.publish("#{routing_key}: payload", routing_key: routing_key, persistent: true)
+# connection.close
 
 # Receive (bind to exact routing key)
+routing_key = 'info'  # routing_key: 'info', 'error.critical', 'user.created', etc.
 connection = Bunny.new(hostname: ENV.fetch('RABBITMQ_HOST', 'localhost'))
 connection.start
 channel = connection.create_channel
 exchange = channel.direct('demo_direct_exchange', durable: true)
-queue = channel.queue('demo_direct_exchange.error_handler', exclusive: false, auto_delete: true)
-queue.bind(exchange, routing_key: 'error.critical')
+# queue name: change for each receiver, 
+# ex: demo_direct_exchange.error_handler_1, demo_direct_exchange.error_handler_2, demo_direct_exchange.info_handler_1, demo_direct_exchange.info_handler_2,  etc.
+queue = channel.queue("demo_direct_exchange.#{routing_key}_handler_2", exclusive: false, auto_delete: true)
+
+queue.bind(exchange, routing_key: routing_key)
 queue.subscribe(block: true) do |delivery_info, _properties, body|
-  puts "Direct received [#{delivery_info.routing_key}]: #{body}"
+  puts "#{routing_key}: Direct received [#{delivery_info.routing_key}]: #{body}"
 end
 ```
+### When 4 receivers are running with different routing keys, each gets only matching messages
+![direct_routing.png](imgs/direct-routing/direct.png)
 
 ## Topic exchange (Topic pattern — '*' and '#' wildcards)
 
